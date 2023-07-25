@@ -1,0 +1,78 @@
+version: "3.8"
+services:
+
+  db:
+    image: postgres:14.2
+    container_name: db_docker_symfony
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: project_api
+      POSTGRES_USER: postgres
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    ports:
+      - 5433:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data:rw
+    networks:
+      - dev
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: adminer_docker_symfony
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - 8080:8080
+    environment:
+      ADMINER_DESIGN: nette
+    networks:
+      - dev
+
+  back:
+    container_name: php
+    build:
+      context: ./php
+    ports:
+      - '9000:9000'
+    volumes:
+      - ./back:/var/www/symfony_docker
+    depends_on:
+      - db
+    networks:
+      - dev
+
+  nginx:
+    container_name: nginx
+    image: nginx:stable-alpine
+    ports:
+      - '8000:80'
+    volumes:
+      - ./back:/var/www/symfony_docker
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - back
+      - db
+    networks:
+      - dev
+
+  front:
+    container_name: front_challenge
+    image: node:lts-alpine3.16
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    ports:
+      - 8001:4000
+    volumes:
+      - ./front:/app
+    networks:
+      - dev
+
+networks:
+  dev:
+
+
+volumes:
+  db-data:
