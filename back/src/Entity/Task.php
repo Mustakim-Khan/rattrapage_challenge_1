@@ -38,7 +38,7 @@ class Task
     #[Assert\NotBlank]
     #[Assert\Type(
         type: 'string',
-        message: "Le title n'est pas une chaine de caractères" 
+        message: "Le titre n'est pas une chaine de caractères" 
     )]
     private ?string $title = null;
 
@@ -46,13 +46,13 @@ class Task
     #[Assert\Length(
         min: 3,
         max: 255,
-        minMessage: 'La desciption doit contenir plus de {{ limit }} caractères',
-        maxMessage: 'La desciption doit contenir moins de {{ limit }} caractères',
+        minMessage: 'La description doit contenir plus de {{ limit }} caractères',
+        maxMessage: 'La description doit contenir moins de {{ limit }} caractères',
     )]
     #[Assert\NotBlank]
     #[Assert\Type(
         type: 'string',
-        message: "La desciption n'est pas une chaine de caractères" 
+        message: "La description n'est pas une chaine de caractères" 
     )]
     private ?string $desciption = null;
 
@@ -60,7 +60,7 @@ class Task
     #[Assert\NotBlank]
     #[Assert\Type(
         type: 'integer',
-        message: "La desciption n'est pas valide" 
+        message: "La priorité n'est pas valide" 
     )]
     #[Assert\Range(
         min: 1,
@@ -73,6 +73,9 @@ class Task
     #[Assert\NotBlank]
     #[Assert\GreaterThanOrEqual('today', message: "La date ne peut être antérieur à celle d'ajourd'hui")]
     private ?\DateTimeInterface $endDate = null;
+
+    #[ORM\ManyToOne(inversedBy: 'tasks')]
+    private ?TasksList $tasksList = null;
 
     public function getId(): ?int
     {
@@ -123,6 +126,18 @@ class Task
     public function setEndDate(\DateTimeInterface $endDate): static
     {
         $this->endDate = $endDate;
+
+        return $this;
+    }
+
+    public function getTasksList(): ?TasksList
+    {
+        return $this->tasksList;
+    }
+
+    public function setTasksList(?TasksList $tasksList): static
+    {
+        $this->tasksList = $tasksList;
 
         return $this;
     }
