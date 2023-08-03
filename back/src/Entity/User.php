@@ -2,13 +2,27 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(),
+        new Patch()
+    ]
+)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -17,6 +31,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(
+        min: 3,
+        max: 20,
+        minMessage: "Le nom d'utilisateur doit contenir plus de {{ limit }} caractères",
+        maxMessage: "Le nom d'utilisateur doit contenir moins de {{ limit }} caractères",
+    )]
+    #[Assert\Type(
+        type: 'string',
+        message: "Le nom d'utilisateur n'est pas une chaine de caractères" 
+    )]
     private ?string $username = null;
 
     #[ORM\Column]
@@ -26,9 +51,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\Length(
+        min: 5,
+        max: 20,
+        minMessage: 'Le mot de passe doit contenir plus de {{ limit }} caractères',
+        maxMessage: 'Le mot de passe doit contenir moins de {{ limit }} caractères',
+    )]
+    #[Assert\NotBlank]
+    #[Assert\Type(
+        type: 'string',
+        message: "Le mot de passe n'est pas une chaine de caractères" 
+    )]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Email]
     private ?string $email = null;
 
     public function getId(): ?int
