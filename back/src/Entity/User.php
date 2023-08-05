@@ -11,15 +11,20 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[UniqueEntity('username', message: "Nom d'utilisateur indisponible")]
 #[ApiResource(
     operations: [
         new Get(),
         new GetCollection(),
-        new Post(),
+        new Post(
+            denormalizationContext: ['groups' => 'create:user']
+        ),
         new Patch()
     ]
 )]
@@ -42,6 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         type: 'string',
         message: "Le nom d'utilisateur n'est pas une chaine de caractères" 
     )]
+    #[Groups(['create:user'])]
     private ?string $username = null;
 
     #[ORM\Column]
@@ -62,11 +68,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         type: 'string',
         message: "Le mot de passe n'est pas une chaine de caractères" 
     )]
+    #[Groups(['create:user'])]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     #[Assert\Email]
+    #[Groups(['create:user'])]
     private ?string $email = null;
 
     public function getId(): ?int
