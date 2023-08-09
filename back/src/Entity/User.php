@@ -11,15 +11,31 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\State\UserPasswordHasher;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
+#[UniqueEntity('username', message: "Nom d'utilisateur déjà existant")]
+#[UniqueEntity('email', message: "Email déjà existant")]
 #[ApiResource(
     operations: [
         new Get(),
         new GetCollection(),
-        new Post(),
+        new Post(
+            name: 'register-user',
+            uriTemplate: '/users/register',
+            denormalizationContext: ['groups' => 'create:user'],
+            processor: UserPasswordHasher::class
+        ),
+        new Post(
+            name: 'register-admin',
+            uriTemplate: '/users/admin/create',
+            processor: UserPasswordHasher::class,
+            security: "is_granted('ROLE_ADMIN')"
+        ),
         new Patch()
     ]
 )]
@@ -42,6 +58,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         type: 'string',
         message: "Le nom d'utilisateur n'est pas une chaine de caractères" 
     )]
+    #[Groups(['create:user'])]
     private ?string $username = null;
 
     #[ORM\Column]
@@ -52,8 +69,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\Column]
     #[Assert\Length(
-        min: 5,
-        max: 20,
+        min: 16,
+        max: 30,
         minMessage: 'Le mot de passe doit contenir plus de {{ limit }} caractères',
         maxMessage: 'Le mot de passe doit contenir moins de {{ limit }} caractères',
     )]
@@ -62,11 +79,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         type: 'string',
         message: "Le mot de passe n'est pas une chaine de caractères" 
     )]
+    #[Groups(['create:user'])]
+    #[Assert\PasswordStrength] // 16 chars, at least 1 caps, at least 1 number, at least 1 special char
     private ?string $password = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
+    #[Groups(['create:user'])]
     private ?string $email = null;
 
     public function getId(): ?int
