@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TasksListRepository::class)]
 #[UniqueEntity('title')]
@@ -29,6 +30,7 @@ class TasksList
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['get:task', 'getc:task'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -43,6 +45,7 @@ class TasksList
         type: 'string',
         message: "Le titre n'est pas une chaine de caractères" 
     )]
+    #[Groups(['get:task', 'getc:task'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
@@ -57,6 +60,7 @@ class TasksList
         type: 'string',
         message: "La description n'est pas une chaine de caractères" 
     )]
+    #[Groups(['get:task', 'getc:task'])]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'tasksList', targetEntity: Task::class)]
