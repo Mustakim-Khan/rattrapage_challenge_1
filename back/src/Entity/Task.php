@@ -27,7 +27,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             normalizationContext: ['groups' => 'getc:task']
         ),
         new Post(
-            security:"is_granted('ROLE_ADMIN') or object.owner == user",
+            security:"is_granted('ROLE_USER')",
             denormalizationContext: ['groups' => 'create:task'],
         ),
         new Patch(
@@ -51,12 +51,20 @@ class Task
         max: 50,
         minMessage: 'Le titre doit contenir plus de {{ limit }} caractères',
         maxMessage: 'Le titre doit contenir moins de {{ limit }} caractères',
+        groups: ['patchValidation', 'Default']
     )]
-    #[Assert\NotBlank(groups: ['patchValidation'])]
+    #[Assert\NotBlank(
+        message: 'Le titre ne peut pas être vide',
+        groups: ['patchValidation', 'Default'])
+    ]
+    #[Assert\NotNull(
+        message: "Le titre doit être renseigné",
+        groups: ['patchValidation', 'Default'])
+    ]
     #[Assert\Type(
         type: 'string',
         message: "Le titre n'est pas une chaine de caractères",
-        groups: ['patchValidation'] 
+        groups: ['patchValidation', 'Default'] 
     )]
     #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
     private ?string $title = null;
@@ -67,36 +75,61 @@ class Task
         max: 255,
         minMessage: 'La description doit contenir plus de {{ limit }} caractères',
         maxMessage: 'La description doit contenir moins de {{ limit }} caractères',
-        groups: ['patchValidation']
+        groups: ['patchValidation', 'Default']
     )]
-    #[Assert\NotBlank(groups: ['patchValidation'])]
+    #[Assert\NotBlank(
+        message: 'La description ne peut pas être vide',
+        groups: ['patchValidation', 'Default'])
+    ]
+    #[Assert\NotNull(
+        message: "La description doit être renseigné",
+        groups: ['patchValidation', 'Default'])
+    ]
     #[Assert\Type(
         type: 'string',
         message: "La description n'est pas une chaine de caractères",
-        groups: ['patchValidation'] 
+        groups: ['patchValidation', 'Default'] 
     )]
     #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
     private ?string $desciption = null;
 
     #[ORM\Column]
-    #[Assert\NotBlank(groups: ['patchValidation'])]
+    #[Assert\NotBlank(
+        message: 'La priorité ne peut pas être vide',
+        groups: ['patchValidation', 'Default'])
+    ]
+    #[Assert\NotNull(
+        message: "La priorité doit être renseigné",
+        groups: ['patchValidation', 'Default'])
+    ]
     #[Assert\Type(
         type: 'integer',
         message: "La priorité n'est pas valide" ,
-        groups: ['patchValidation']
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\Range(
         min: 1,
         max: 3,
         notInRangeMessage: 'La valeur ne correspond à aucun des choix possibles',
-        groups: ['patchValidation']
+        groups: ['patchValidation', 'Default']
     )]
     #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
     private ?int $priority = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    #[Assert\NotBlank(groups: ['patchValidation'])]
-    #[Assert\GreaterThanOrEqual('today', message: "La date ne peut être antérieur à celle d'ajourd'hui", groups: ['patchValidation'])]
+    #[Assert\NotBlank(
+        message: "La date d'écheance ne peut pas être vide",
+        groups: ['patchValidation', 'Default'])
+    ]
+    #[Assert\NotNull(
+        message: "La date d'écheance doit être renseigné",
+        groups: ['patchValidation', 'Default'])
+    ]
+    #[Assert\GreaterThanOrEqual(
+        'today', 
+        message: "La date ne peut être antérieur à celle d'ajourd'hui", 
+        groups: ['patchValidation', 'Default'])
+    ]
     #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
     private ?\DateTimeInterface $endDate = null;
 
@@ -105,8 +138,14 @@ class Task
     private ?TasksList $tasksList = null;
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]
-    #[Assert\NotBlank]
-    #[Assert\NotNull]
+    #[Assert\NotBlank(
+        message: "L'utilisateur affecté ne peut pas être vide",
+        groups: ['Default'])
+    ]
+    #[Assert\NotNull(
+        message: "L'utilisateur affecté doit être renseigné",
+        groups: ['Default'])
+    ]
     #[Groups(['create:task', 'get:task', 'getc:task'])]
     public ?User $owner = null;
 
