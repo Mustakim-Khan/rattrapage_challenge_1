@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\TaskRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -34,6 +35,9 @@ use Symfony\Component\Validator\Constraints as Assert;
             security:"is_granted('ROLE_ADMIN') or object.owner == user or object.createdBy == user",
             denormalizationContext: ['groups' => 'patch:task'],
             validationContext: ['groups' => 'patchValidation']
+        ),
+        new Delete(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user or object.createdBy == user",
         )
     ]
 )]
