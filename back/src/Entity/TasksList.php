@@ -13,15 +13,25 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use Gedmo\Mapping\Annotation\Blameable;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TasksListRepository::class)]
 #[UniqueEntity('title')]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(),
+        new Get(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user",
+            normalizationContext: ['groups' => 'get:taskslist']
+        ),
+        new GetCollection(
+            security:"is_granted('ROLE_ADMIN')",
+            normalizationContext: ['groups' => 'getc:taskslist']
+        ),
+        new Post(
+            security:"is_granted('ROLE_USER')",
+            denormalizationContext: ['groups' => 'create:taskslist'],
+        ),
         new Patch()
     ]
 )]
@@ -30,7 +40,7 @@ class TasksList
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['get:taskslist', 'getc:taskslist', 'get:task', 'getc:task'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -40,12 +50,17 @@ class TasksList
         minMessage: 'Le titre doit contenir plus de {{ limit }} caractères',
         maxMessage: 'Le titre doit contenir moins de {{ limit }} caractères',
     )]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(
+        message: 'Le titre ne peut pas être vide',
+    )]
+    #[Assert\NotNull(
+        message: "Le titre doit être renseigné",
+    )]
     #[Assert\Type(
         type: 'string',
         message: "Le titre n'est pas une chaine de caractères" 
     )]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'get:task', 'getc:task'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
@@ -55,16 +70,28 @@ class TasksList
         minMessage: 'La description doit contenir plus de {{ limit }} caractères',
         maxMessage: 'La description doit contenir moins de {{ limit }} caractères',
     )]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(
+        message: "La description ne peut pas être vide",
+    )]
+    #[Assert\NotNull(
+        message: "La description doit être renseigné",
+    )]
     #[Assert\Type(
         type: 'string',
         message: "La description n'est pas une chaine de caractères" 
     )]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'get:task', 'getc:task'])]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'tasksList', targetEntity: Task::class)]
+    #[Groups(['get:taskslist', 'getc:taskslist'])]
     private Collection $tasks;
+
+    #[ORM\ManyToOne(inversedBy: 'tasksLists')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Blameable(on: 'create')]
+    #[Groups(['get:taskslist', 'getc:taskslist'])]
+    public ?User $owner = null;
 
     public function __construct()
     {
@@ -126,6 +153,18 @@ class TasksList
                 $task->setTasksList(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
