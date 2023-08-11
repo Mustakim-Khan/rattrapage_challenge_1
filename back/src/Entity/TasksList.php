@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\TasksListRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,16 +14,33 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use Gedmo\Mapping\Annotation\Blameable;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TasksListRepository::class)]
 #[UniqueEntity('title')]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(),
-        new Patch()
+        new Get(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user",
+            normalizationContext: ['groups' => 'get:taskslist']
+        ),
+        new GetCollection(
+            security:"is_granted('ROLE_ADMIN')",
+            normalizationContext: ['groups' => 'getc:taskslist']
+        ),
+        new Post(
+            security:"is_granted('ROLE_USER')",
+            denormalizationContext: ['groups' => 'create:taskslist'],
+        ),
+        new Patch(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user",
+            denormalizationContext: ['groups' => 'patch:taskslist'],
+            validationContext: ['groups' => 'patchValidation']
+        ),
+        new Delete(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user",
+        )
     ]
 )]
 class TasksList
@@ -30,7 +48,7 @@ class TasksList
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['get:taskslist', 'getc:taskslist', 'get:task', 'getc:task'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -39,13 +57,22 @@ class TasksList
         max: 50,
         minMessage: 'Le titre doit contenir plus de {{ limit }} caractères',
         maxMessage: 'Le titre doit contenir moins de {{ limit }} caractères',
+        groups: ['patchValidation', 'Default']
     )]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(
+        message: 'Le titre ne peut pas être vide',
+        groups: ['patchValidation', 'Default']
+    )]
+    #[Assert\NotNull(
+        message: "Le titre doit être renseigné",
+        groups: ['patchValidation', 'Default']
+    )]
     #[Assert\Type(
         type: 'string',
-        message: "Le titre n'est pas une chaine de caractères" 
+        message: "Le titre n'est pas une chaine de caractères",
+        groups: ['patchValidation', 'Default']
     )]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'patch:taskslist', 'get:task', 'getc:task'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
@@ -54,17 +81,33 @@ class TasksList
         max: 255,
         minMessage: 'La description doit contenir plus de {{ limit }} caractères',
         maxMessage: 'La description doit contenir moins de {{ limit }} caractères',
+        groups: ['patchValidation', 'Default']
     )]
-    #[Assert\NotBlank]
+    #[Assert\NotBlank(
+        message: "La description ne peut pas être vide",
+        groups: ['patchValidation', 'Default']
+    )]
+    #[Assert\NotNull(
+        message: "La description doit être renseigné",
+        groups: ['patchValidation', 'Default']
+    )]
     #[Assert\Type(
         type: 'string',
-        message: "La description n'est pas une chaine de caractères" 
+        message: "La description n'est pas une chaine de caractères",
+        groups: ['patchValidation', 'Default']
     )]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'patch:taskslist', 'get:task', 'getc:task'])]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'tasksList', targetEntity: Task::class)]
+    #[Groups(['get:taskslist', 'getc:taskslist'])]
     private Collection $tasks;
+
+    #[ORM\ManyToOne(inversedBy: 'tasksLists')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Blameable(on: 'create')]
+    #[Groups(['get:taskslist', 'getc:taskslist'])]
+    public ?User $owner = null;
 
     public function __construct()
     {
@@ -126,6 +169,18 @@ class TasksList
                 $task->setTasksList(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }

@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use Gedmo\Mapping\Annotation\Blameable;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -46,7 +45,7 @@ class Task
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['get:task', 'getc:task', 'get:taskslist', 'getc:taskslist'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -70,7 +69,7 @@ class Task
         message: "Le titre n'est pas une chaine de caractères",
         groups: ['patchValidation', 'Default'] 
     )]
-    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
+    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task', 'get:taskslist', 'getc:taskslist'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
@@ -94,7 +93,7 @@ class Task
         message: "La description n'est pas une chaine de caractères",
         groups: ['patchValidation', 'Default'] 
     )]
-    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
+    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task', 'get:taskslist', 'getc:taskslist'])]
     private ?string $desciption = null;
 
     #[ORM\Column]
@@ -117,7 +116,7 @@ class Task
         notInRangeMessage: 'La valeur ne correspond à aucun des choix possibles',
         groups: ['patchValidation', 'Default']
     )]
-    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
+    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task', 'get:taskslist', 'getc:taskslist'])]
     private ?int $priority = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
@@ -134,7 +133,7 @@ class Task
         message: "La date ne peut être antérieur à celle d'ajourd'hui", 
         groups: ['patchValidation', 'Default'])
     ]
-    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task'])]
+    #[Groups(['create:task', 'get:task', 'getc:task', 'patch:task', 'get:taskslist', 'getc:taskslist'])]
     private ?\DateTimeInterface $endDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'tasks')]

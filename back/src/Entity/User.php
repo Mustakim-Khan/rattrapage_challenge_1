@@ -52,7 +52,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['get:task', 'getc:task'])]
+    #[Groups(['get:task', 'getc:task', 'get:taskslist', 'getc:taskslist'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
@@ -67,7 +67,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         type: 'string',
         message: "Le nom d'utilisateur n'est pas une chaine de caractères" 
     )]
-    #[Groups(['create:user', 'get:task', 'getc:task'])]
+    #[Groups(['create:user', 'get:task', 'getc:task', 'get:taskslist', 'getc:taskslist'])]
     private ?string $username = null;
 
     #[ORM\Column]
@@ -104,10 +104,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'createdBy', targetEntity: Task::class)]
     private Collection $createdTasks;
 
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: TasksList::class)]
+    private Collection $tasksLists;
+
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
         $this->createdTasks = new ArrayCollection();
+        $this->tasksLists = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -246,6 +250,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($createdTask->getCreatedBy() === $this) {
                 $createdTask->setCreatedBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TasksList>
+     */
+    public function getTasksLists(): Collection
+    {
+        return $this->tasksLists;
+    }
+
+    public function addTasksList(TasksList $tasksList): static
+    {
+        if (!$this->tasksLists->contains($tasksList)) {
+            $this->tasksLists->add($tasksList);
+            $tasksList->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTasksList(TasksList $tasksList): static
+    {
+        if ($this->tasksLists->removeElement($tasksList)) {
+            // set the owning side to null (unless already changed)
+            if ($tasksList->getOwner() === $this) {
+                $tasksList->setOwner(null);
             }
         }
 
