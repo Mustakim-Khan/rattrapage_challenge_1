@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Repository\TasksListRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -36,6 +37,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
             security:"is_granted('ROLE_ADMIN') or object.owner == user",
             denormalizationContext: ['groups' => 'patch:taskslist'],
             validationContext: ['groups' => 'patchValidation']
+        ),
+        new Delete(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user",
         )
     ]
 )]
