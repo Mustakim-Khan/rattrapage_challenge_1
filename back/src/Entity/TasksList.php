@@ -32,7 +32,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
             security:"is_granted('ROLE_USER')",
             denormalizationContext: ['groups' => 'create:taskslist'],
         ),
-        new Patch()
+        new Patch(
+            security:"is_granted('ROLE_ADMIN') or object.owner == user",
+            denormalizationContext: ['groups' => 'patch:taskslist'],
+            validationContext: ['groups' => 'patchValidation']
+        )
     ]
 )]
 class TasksList
@@ -49,18 +53,22 @@ class TasksList
         max: 50,
         minMessage: 'Le titre doit contenir plus de {{ limit }} caractères',
         maxMessage: 'Le titre doit contenir moins de {{ limit }} caractères',
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\NotBlank(
         message: 'Le titre ne peut pas être vide',
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\NotNull(
         message: "Le titre doit être renseigné",
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\Type(
         type: 'string',
-        message: "Le titre n'est pas une chaine de caractères" 
+        message: "Le titre n'est pas une chaine de caractères",
+        groups: ['patchValidation', 'Default']
     )]
-    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'get:task', 'getc:task'])]
+    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'patch:taskslist', 'get:task', 'getc:task'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
@@ -69,18 +77,22 @@ class TasksList
         max: 255,
         minMessage: 'La description doit contenir plus de {{ limit }} caractères',
         maxMessage: 'La description doit contenir moins de {{ limit }} caractères',
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\NotBlank(
         message: "La description ne peut pas être vide",
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\NotNull(
         message: "La description doit être renseigné",
+        groups: ['patchValidation', 'Default']
     )]
     #[Assert\Type(
         type: 'string',
-        message: "La description n'est pas une chaine de caractères" 
+        message: "La description n'est pas une chaine de caractères",
+        groups: ['patchValidation', 'Default']
     )]
-    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'get:task', 'getc:task'])]
+    #[Groups(['create:taskslist', 'get:taskslist', 'getc:taskslist', 'patch:taskslist', 'get:task', 'getc:task'])]
     private ?string $description = null;
 
     #[ORM\OneToMany(mappedBy: 'tasksList', targetEntity: Task::class)]
