@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Post;
 use Gedmo\Mapping\Annotation\Blameable;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Controller\UserTasksController;
 
 #[ORM\Entity(repositoryClass: TaskRepository::class)]
 #[ApiResource(
@@ -21,6 +22,12 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             security:"is_granted('ROLE_ADMIN') or object.owner == user",
             normalizationContext: ['groups' => 'get:task']
+        ),
+        new GetCollection(
+            name: "user-tasks",
+            uriTemplate: "/users/{id}/tasks",
+            controller: UserTasksController::class,
+            normalizationContext: ['groups' => 'getc:task']
         ),
         new GetCollection(
             security:"is_granted('ROLE_ADMIN')",
