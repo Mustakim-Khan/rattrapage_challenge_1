@@ -6,6 +6,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Story\UserStory;
 use App\Story\TaskStory;
+use App\Story\TasksListStory;
 
 class AppFixtures extends Fixture
 {
@@ -17,5 +18,6 @@ class AppFixtures extends Fixture
         // $manager->flush();
         UserStory::load();
         TaskStory::load();
+        TasksListStory::load();
     }
 }
