@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use Gedmo\Mapping\Annotation\Blameable;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Controller\UserTasksListsController;
 
 #[ORM\Entity(repositoryClass: TasksListRepository::class)]
 #[UniqueEntity('title')]
@@ -24,6 +25,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(
             security:"is_granted('ROLE_ADMIN') or object.owner == user",
             normalizationContext: ['groups' => 'get:taskslist']
+        ),
+        new GetCollection(
+            name: "user-taskslists",
+            uriTemplate: "/users/{id}/taskslists",
+            controller: UserTasksListsController::class,
+            normalizationContext: ['groups' => 'getc:taskslist']
         ),
         new GetCollection(
             security:"is_granted('ROLE_ADMIN')",
